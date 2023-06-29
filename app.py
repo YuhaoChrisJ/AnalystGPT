@@ -24,8 +24,8 @@ if uploaded_file is not None:
     from langchain.llms.openai import OpenAI
     from langchain.agents.agent_types import AgentType
     import os
-
-    os.environ['OPENAI_API_KEY'] = "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"
+    api = st.text_input("input your openai API key")
+    os.environ['OPENAI_API_KEY'] = api
 
     ## create db engine
     from sqlalchemy import create_engine
