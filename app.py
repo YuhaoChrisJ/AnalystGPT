@@ -43,13 +43,13 @@ if uploaded_file is not None:
         agent_executor = create_sql_agent(
             llm=OpenAI(temperature=0),
             toolkit=toolkit,
-            verbose=False,
+            verbose=True,
             agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         )
 
         ## Input description
         input = st.text_input("input your description")
-        prompt = input + ', and return me the query clause.'
+        prompt = input + ', and you must only return the query clause. Not the answer for this question.'
         if input:
             try:
                 response = agent_executor.run(prompt)
