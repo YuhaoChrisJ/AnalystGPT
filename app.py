@@ -117,7 +117,7 @@ if input2:
     try:
         exec(code)
     except:
-        st.write("Your description is blur or irrelevant, please be more specific.")
+        st.sidebar.write("Your description is blur or irrelevant, please be more specific.")
     with ct1:
         st.write("## Your Analysis Plot:")
         st.plotly_chart(fig)
