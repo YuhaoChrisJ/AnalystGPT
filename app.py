@@ -75,6 +75,12 @@ st.markdown("""<style> .big-font {
     font-style: italic;
     font-family: "Lucida Handwriting";
 } </style> """, unsafe_allow_html=True)
+st.markdown(f'''
+    <style>
+    section[data-testid="stSidebar"] .css-ng1t4o {{width: 18rem;}}
+    </style>
+''',unsafe_allow_html=True)
+
 st.sidebar.markdown('<p class="big-font">Analyst GPT</p>', unsafe_allow_html=True)
 st.sidebar.write("### Your data anlysis & visualization assistant")
 
