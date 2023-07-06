@@ -66,27 +66,38 @@ def plot_prompt(result_tb, question):
 
 
 
-
-
 ## Web component
-uploaded_file = st.sidebar.file_uploader("Choose a CSV file")
+
+st.markdown("""<style> .big-font {
+    font-size:50px !important;
+    color: navy;
+    font-weight: bold;
+    font-style: italic;
+} </style> """, unsafe_allow_html=True)
+st.sidebar.markdown('<p class="big-font">Analyst GPT</p>', unsafe_allow_html=True)
+st.sidebar.write("##### Your data anlysis & visualization assistant")
+
+ct1 = st.container()
+ct2 = st.container()
+
+uploaded_file = st.file_uploader("Choose a CSV file")
 if uploaded_file is not None:
     df1=pd.read_csv(uploaded_file)
-    if not st.sidebar.checkbox("Hide orginal data", False):
-        st.write("## Your Dataset:", df1)
+    st.write("### Your Dataset:", df1)
     df_to_db(df1)
 
 api = st.sidebar.text_input("input your openai API key")
-input = st.sidebar.text_input("input your query description")
+input = st.sidebar.text_area("input your query description")
+
 if input:
     openai.api_key = api
     prompt = query_prompt(input)
     query = get_completion(messages=prompt)
     result_tb = pd.read_sql_query(query, conn)
-    if not st.sidebar.checkbox("Hide query result", False):
-        st.write("## Your Query Result:",result_tb)
+    with ct2:
+        st.write("### Your Query Result:",result_tb)
 
-input2 = st.sidebar.text_input("What plot you want to see?")
+input2 = st.sidebar.text_area("What plot you want to see?")
 if input2:
     prompt2 = plot_prompt(result_tb, input2)
     response = get_completion(messages=prompt2)
@@ -97,5 +108,6 @@ if input2:
     code = response[start_index:end_index]
 
     exec(code)
-    st.write("## Your Analysis Plot:")
-    st.plotly_chart(fig)
+    with ct1:
+        st.write("## Your Analysis Plot:")
+        st.plotly_chart(fig)
