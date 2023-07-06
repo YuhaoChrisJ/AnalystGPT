@@ -73,9 +73,10 @@ st.markdown("""<style> .big-font {
     color: navy;
     font-weight: bold;
     font-style: italic;
+    font-family: "Lucida Handwriting";
 } </style> """, unsafe_allow_html=True)
 st.sidebar.markdown('<p class="big-font">Analyst GPT</p>', unsafe_allow_html=True)
-st.sidebar.write("##### Your data anlysis & visualization assistant")
+st.sidebar.write("### Your data anlysis & visualization assistant")
 
 ct1 = st.container()
 ct2 = st.container()
@@ -86,7 +87,7 @@ if uploaded_file is not None:
     st.write("### Your Dataset:", df1)
     df_to_db(df1)
 
-api = st.sidebar.text_input("input your openai API key")
+api = st.sidebar.text_input("Input your openai API key")
 input = st.sidebar.text_area("input your query description")
 
 if input:
@@ -107,7 +108,10 @@ if input2:
     end_index = response.find(end)
     code = response[start_index:end_index]
 
-    exec(code)
+    try:
+        exec(code)
+    except:
+        st.write("Your description is blur or irrelevant, please be more specific.")
     with ct1:
         st.write("## Your Analysis Plot:")
         st.plotly_chart(fig)
