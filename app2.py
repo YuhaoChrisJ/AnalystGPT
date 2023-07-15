@@ -1,50 +1,11 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import openai
+import ast
+import matplotlib.backends.backend_pdf as pdf
 
 from sql_loader.loaders import mysqlDB, postgresDB, sqliteDB, render_prompt
-
-## All functions
-
-def get_completion(messages, model="gpt-3.5-turbo"):
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=0, # this is the degree of randomness of the model's output
-    )
-    return response.choices[0].message["content"]
-
-def df_to_db(df1):
-        ## Turn csv file into sql database
-        global c, conn
-        conn = sqlite3.connect('database')
-        c = conn.cursor()
-        df1.to_sql('t1', conn, if_exists='replace', index=False)
-
-def plot_prompt(result_tb, question):
-    # turn df to db
-    df_to_db(result_tb)
-    # Extract table schema
-    schema = pd.read_sql_query(f"PRAGMA table_info('t1')", conn)
-    schema_str = ''
-    for index, row in schema.iterrows():
-        column_info = f"name={row['name']}, datatype={row['type']};\n"
-        schema_str = schema_str + column_info
-
-    # Render Prompt
-    query_system_prompt = "You are a helpful assistant that only writes Python code using plotly library. You must reply only with Python code, wrap your code in triple backquotes."
-    query_prompt = f"""
-    Given a pandas dataframe:
-    result_tb
-    With schema:
-    {schema_str}
-    Based on this dataframe, write some python code using plotly to meet the following request:
-    {question}"""
-
-    messages = [{"role": "system", "content": query_system_prompt}, {"role": "user", "content": query_prompt}]
-    return messages
-
+from LLM_agents import get_completion, plot_prompt, plot_info, describ_plot
 
 ##### Web component
 
@@ -83,7 +44,7 @@ if db == 'sqlite':
         st.session_state.sqlite_state = True
         connect = sqliteDB.connect_db(ad)
         db_info = sqliteDB.db_info(connect)
-        if db_info != []:
+        if db_info == {}:
             st.write("Information invalid. Please enter the right information again.")
         else:
             st.write("sucess!")
@@ -140,8 +101,16 @@ if input or st.session_state.input_state:
     except:
         st.sidebar.write("Your description is blur or irrelevant. Or you are not connected to a databse.")
 
+
+if "input2_state" not in st.session_state:
+    st.session_state.input2_state = False
+if "plots" not in st.session_state:
+    st.session_state.plots = {}
+
 input2 = st.sidebar.text_area("What plot you want to see?")
-if input2:
+if input2 or st.session_state.input2_state:
+    st.session_state.input2_state = True
+    #show fig
     prompt2 = plot_prompt(result_tb, input2)
     response = get_completion(messages=prompt2)
     start = "import"
@@ -154,7 +123,33 @@ if input2:
         exec(code)
     except:
         st.sidebar.write("Your description is blur or irrelevant, please be more specific.")
-    with ct1:
-        st.write("## Your Analysis Plot:")
-        st.plotly_chart(fig)
+
     del st.session_state['input_state']
+
+    #show fig info
+    prompt3 = plot_info(result_tb, input2)
+    columns = ast.literal_eval(get_completion(prompt3))
+    plot_data = result_tb[columns]
+    
+    prompt4 = describ_plot(plot_data, input2)
+    description = get_completion(messages=prompt4)
+    ct1.write("## Your Analysis Plot:")
+    save = ct1.button('Save this plot')
+    ct1.plotly_chart(fig)
+    ct1.write(description)
+
+    if "save_state" not in st.session_state:
+        st.session_state.save_state = False
+
+    if save or st.session_state.save_state:
+        st.session_state.save_state = True
+        st.session_state.plots[description] = fig
+
+    #save as pdf
+    pdf_file = pdf.PdfPages('output.pdf')
+    for description, plot in st.session_state.plots.items():
+        st.plotly_chart(plot)
+        st.write(description)
+
+
+
