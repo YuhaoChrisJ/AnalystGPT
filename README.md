@@ -4,3 +4,12 @@ You can connect to a local SQL database or upload your data, write a description
 
 
 Anyone can use it to analyze data just by words!
+
+
+To use this app, first set up an environment based on the requirement file. Then enter your openAI API at line 145 in file APP.py.
+
+Then run this command to start your app:
+```python
+streamlit run APP.py
+```
+
