@@ -4,10 +4,11 @@ import sqlite3
 import jinja2
 import psycopg2
 import mysql.connector
+import streamlit as st
 
 
 
-
+@st.cache_data
 class sqliteDB:
     def __init__(self) -> None:
         pass
@@ -30,15 +31,19 @@ class sqliteDB:
             for index, row in schema.iterrows():
                 column_info = f"name={row['name']}, datatype={row['type']};\n"
                 schema_str = schema_str + column_info
-            return schema_str
+            return schema, schema_str
 
         # Table name/schema pair
         name_schema = {}
+        st.write('## Tables in your database')
         for name in tb_list:
-            name_schema[name] = get_schema(name)
+            schema, schema_str = get_schema(name)
+            st.write(name)
+            st.write(schema)
+            name_schema[name] = schema_str
 
         return name_schema
-    
+@st.cache_data
 class postgresDB:
     def __init__(self) -> None:
         pass
@@ -74,14 +79,16 @@ class postgresDB:
             for index, row in schema.iterrows():
                 column_info = f"name={row['column_name']}, datatype={row['data_type']};\n"
                 schema_str = schema_str + column_info
-            return schema_str
+            return schema, schema_str
 
         name_schema = {}
+        st.write('## Tables in database')
         for name in tb_list:
-            name_schema[name] = get_schema(name)
-
-        return name_schema
-    
+            schema, schema_str = get_schema(name)
+            st.write(name)
+            st.write(schema)
+            name_schema[name] = get_schema(schema_str)
+@st.cache_data
 class mysqlDB:
     def __init__(self) -> None:
         pass
@@ -109,16 +116,20 @@ class mysqlDB:
             for index, row in schema.iterrows():
                 column_info = f"name={row['COLUMN_NAME']}, datatype={row['DATA_TYPE']};\n"
                 schema_str = schema_str + column_info
-            return schema_str
+            return schema, schema_str
 
         name_schema = {}
+        st.sidebar.write('## Tables in database')
         for name in tb_list:
-            name_schema[name] = get_schema(name)
+            schema, schema_str = get_schema(name)
+            st.sidebar.write(name)
+            st.sidebar.write(schema)
+            name_schema[name] = get_schema(schema_str)
 
         return name_schema
 
 
-
+@st.cache_data
 def render_prompt(name_schema, question):
         ## Render Prompt
         environment = jinja2.Environment()
